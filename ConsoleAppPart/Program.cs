@@ -10,16 +10,19 @@ namespace ConsoleAppPart
 		public static void Main(string[] args)
 		{
 			Console.WriteLine("Start Reading File");
-			Console.WriteLine("Enter a specifique path of csv file. If empty it use /InFile/bigfile.csv in ConsoleAppPart");
+			Console.WriteLine("Enter a specifique path of csv file, if empty it use InFile folder in ConsoleAppPart");
 
 			string pathIn = Console.ReadLine();
 
 			if (string.IsNullOrEmpty(pathIn) || string.IsNullOrWhiteSpace(pathIn))
 				pathIn = "../../../InFile/bigfile.csv";
 
+			Console.WriteLine("Found the json file result in the OutFile folder in ConsoleAppPart");
+			string pathOut = "../../../OutFile/result.json";
+
 			try
 			{
-				WorkFile(pathIn);
+				WorkFile(pathIn, pathOut);
 				Console.WriteLine();
 				Console.WriteLine("Reading finish");
 			}
@@ -38,17 +41,16 @@ namespace ConsoleAppPart
 		}
 
 		/// <summary>
-		/// Method do the work for the csv file.
-		/// I use 1 000 000 for the maxline (i test it with 80 mo of csv and it's really performant)
+		/// Proceed a csv file and write create a result json file
 		/// </summary>
 		/// <param name="info"></param>
 		/// <param name="maxline"></param>
-		public static async void WorkFile(string info, int maxline = 1000000)
+		public static async void WorkFile(string pathIn, string pathOut, int maxline = 1000000)
 		{
 			// Get the file
-			var lines = File.ReadLines(info);
-			string directoryPath = Path.GetDirectoryName(info);
-			string filenameok = Path.GetFileNameWithoutExtension(info);
+			var lines = File.ReadLines(pathIn);
+			string directoryPath = Path.GetDirectoryName(pathIn);
+			string filenameok = Path.GetFileNameWithoutExtension(pathIn);
 
 			// Get number of lines of the file
 			var linesNumber = lines.Count();
@@ -60,17 +62,31 @@ namespace ConsoleAppPart
 
 			// Prepare loop
 			int cptOccurence = 0;
-			int lastLines = linesNumber - ((numberOfOccurence) * maxline);
+			int cptLine = 0;
+			int lastLines = linesNumber - ((numberOfOccurence - 1) * maxline);
+
+			//Delete file if exist
+			Writer.DeleteFileIfExist(pathOut);
+
+			// Begin the array of json
+			Writer.WriteChar(pathOut, '[');
+
+			bool writeInLastOccurence = false;
 
 			// Loop and call specifique method by batch of data/lines
-			while (cptOccurence <= numberOfOccurence)
+			while (cptOccurence <= numberOfOccurence && cptLine < linesNumber)
 			{
+				cptLine = cptOccurence * maxline;
+
 				if (cptOccurence == numberOfOccurence)
-					await Reader.ReadAndConsole(lines.Skip(cptOccurence * maxline).Take(lastLines));
+					writeInLastOccurence = Writer.WriteJsonData(pathOut, await Reader.ReadLinesAndCreateResponse(lines.Skip(cptLine).Take(lastLines), cptLine), writeInLastOccurence);
 				else
-					await Reader.ReadAndConsole(lines.Skip(cptOccurence * maxline).Take(maxline));
+					writeInLastOccurence = Writer.WriteJsonData(pathOut, await Reader.ReadLinesAndCreateResponse(lines.Skip(cptLine).Take(maxline), cptLine), writeInLastOccurence);
 				cptOccurence++;
 			}
+
+			// Close the array of json
+			Writer.WriteChar(pathOut, ']');
 		}
 	}
 }
