@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Model;
+using static Tools.Writer;
 
 namespace ApiPart.Controllers
 {
@@ -13,10 +16,22 @@ namespace ApiPart.Controllers
 		/// <param name="csvUri"></param>
 		/// <returns></returns>
 		[HttpGet("filter")]
-		public async Task<IActionResult> Get(string csvUri)
+		public async Task<IActionResult> Get(string csvUri, int format)
 		{
-			//return json file
-			return File(Program.DoFilter(csvUri), "application/json");
+			TypeOfResult type;
+			Enum.TryParse(format.ToString(), out type);
+
+			byte[] result = Program.DoFilter(csvUri, type);
+
+			switch (type)
+			{
+				case TypeOfResult.JSON:
+					return File(result, "application/json");
+				case TypeOfResult.XML:
+					return File(result, "application/xml");
+				default:
+					return File(result, "application/json");
+			}
 		}
 
 		/// <summary>
@@ -25,10 +40,24 @@ namespace ApiPart.Controllers
 		/// <param name="csvUri"></param>
 		/// <returns></returns>
 		[HttpPost("filter")]
-		public async Task<IActionResult> Post([FromBody] string csvUri)
+		public async Task<IActionResult> Post([FromBody] FilterRequestObject request)
 		{
-			//return json file
-			return File(Program.DoFilter(csvUri), "application/json"); ;
+			if (request == null)
+				return Forbid();
+
+			TypeOfResult type;
+			Enum.TryParse(request.ResponseType.ToString(), out type);
+
+			byte[] result = Program.DoFilter(request.csvUri, type);
+
+			switch(type){
+				case TypeOfResult.JSON:
+					return File(result, "application/json");
+				case TypeOfResult.XML:
+					return File(result, "application/xml");
+				default:
+					return File(result, "application/json");
+			}
 		}
 	}
 }
