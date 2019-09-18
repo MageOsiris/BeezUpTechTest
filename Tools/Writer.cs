@@ -1,11 +1,9 @@
 ﻿using Model;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -102,7 +100,7 @@ namespace Tools
 			{
 				// If on occurence write data, we need seperate them
 				if (haveAlreadyData)
-					writer.WriteValue(',');
+					sw.Write(',');
 
 				// Use after to detect if it's the last data of the current occurence
 				BeezUpData lastobj = data.Last();
@@ -138,7 +136,7 @@ namespace Tools
 
 					// Seperation of data
 					if (lastobj.LineNumber != beezUpData.LineNumber)
-						writer.WriteValue(',');
+						sw.Write(',');
 				}
 
 				// Call the method to write in file

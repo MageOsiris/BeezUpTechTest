@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.852
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleAppPart", "ConsoleAppPart\ConsoleAppPart.csproj", "{11E0D20A-EE5E-493D-BCE0-0C0C08D13C7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleAppPart", "ConsoleAppPart\ConsoleAppPart.csproj", "{11E0D20A-EE5E-493D-BCE0-0C0C08D13C7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools", "Tools\Tools.csproj", "{BA558F97-8018-466B-BA86-2E27A89DAE03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tools", "Tools\Tools.csproj", "{BA558F97-8018-466B-BA86-2E27A89DAE03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "Model\Model.csproj", "{6CD968A3-B054-48D3-8C50-6AE62762A08E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model", "Model\Model.csproj", "{6CD968A3-B054-48D3-8C50-6AE62762A08E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiPart", "ApiPart\ApiPart.csproj", "{2C86D7F5-0F8C-4208-AF6C-5EDC3352B63B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{6CD968A3-B054-48D3-8C50-6AE62762A08E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CD968A3-B054-48D3-8C50-6AE62762A08E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CD968A3-B054-48D3-8C50-6AE62762A08E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C86D7F5-0F8C-4208-AF6C-5EDC3352B63B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C86D7F5-0F8C-4208-AF6C-5EDC3352B63B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C86D7F5-0F8C-4208-AF6C-5EDC3352B63B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C86D7F5-0F8C-4208-AF6C-5EDC3352B63B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
