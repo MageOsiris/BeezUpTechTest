@@ -6,11 +6,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Tools
 {
 	public class Writer
 	{
+		public enum TypeOfResult{
+			JSON = 0,
+			XML = 1
+		}
+
 		/// <summary>
 		/// Delete a file on a specifique path if exist
 		/// </summary>
@@ -55,13 +62,35 @@ namespace Tools
 		}
 
 		/// <summary>
+		/// Convert a enumation of BeezUpData to a specifique format
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="data"></param>
+		/// <param name="haveAlreadyData"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static bool WriteData(string path, IEnumerable<BeezUpData> data, bool haveAlreadyData, TypeOfResult type){
+			switch(type)
+			{
+				case TypeOfResult.JSON:
+					return WriteJsonData(path, data, haveAlreadyData);
+				case TypeOfResult.XML:
+					WriteXmlData(path, data);
+					return false;
+				default:
+					return false;
+
+			}
+		}
+
+		/// <summary>
 		/// Convert a enumation of BeezUpData to json format
 		/// </summary>
 		/// <param name="path"></param>
 		/// <param name="data"></param>
 		/// <param name="haveAlreadyData"></param>
 		/// <returns></returns>
-		public static bool WriteJsonData(string path, IEnumerable<BeezUpData> data, bool haveAlreadyData)
+		private static bool WriteJsonData(string path, IEnumerable<BeezUpData> data, bool haveAlreadyData)
 		{
 			// If there are no data return false but if the last occurence have data return true
 			// because if occurence 1 have data, occurence 2 not. I need for the occurence 3 this information (see after)
@@ -119,27 +148,89 @@ namespace Tools
 			return true;
 		}
 
-		// I'm beggin to use the JsonSerializer package but in this link, it's more performant to serialize manualy : https://www.newtonsoft.com/json/help/html/Performance.htm
-		//public static void WriteJsonData(string path, IEnumerable<BeezUpData> data)
-		//{
-		//	JsonSerializer serializer = new JsonSerializer();
-		//	serializer.Converters.Add(new JavaScriptDateTimeConverter());
-		//	serializer.NullValueHandling = NullValueHandling.Ignore;
+		/// <summary>
+		/// Convert a enumation of BeezUpData to xml format
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		private static void WriteXmlData(string path, IEnumerable<BeezUpData> data)
+		{
+			if (!File.Exists(path))
+			{
+				//Specifique code for existing file
+				using (XmlWriter xmlWriter = XmlWriter.Create(path))
+				{
+					// Manual serialize
+					xmlWriter.WriteStartDocument();
+					xmlWriter.WriteStartElement("BeezUpData");
 
-		//	if (File.Exists(path))
-		//		using (StreamWriter sw = File.AppendText(path))
-		//		using (JsonWriter writer = new JsonTextWriter(sw))
-		//		{
-		//			serializer.Serialize(writer, data);
-		//		}
-		//	else
-		//		using (StreamWriter sw = new StreamWriter(path))
-		//		using (JsonWriter writer = new JsonTextWriter(sw))
-		//		{
-		//			serializer.Serialize(writer, data);
-		//		}
+					foreach (BeezUpData beezUpData in data)
+					{
+						xmlWriter.WriteStartElement("Data");
 
-		//	return;
-		//}
+						// Commun data
+						xmlWriter.WriteElementString("lineNumber", beezUpData.LineNumber.ToString());
+						xmlWriter.WriteElementString("type", Enum.GetName(typeof(Model.Type), beezUpData.Type));
+
+						switch (beezUpData.Type)
+						{
+							// Specifique error part
+							case Model.Type.error:
+								xmlWriter.WriteElementString("errorMessage", beezUpData.ErrorMessage);
+								break;
+							// Specifique ok type
+							case Model.Type.ok:
+								xmlWriter.WriteElementString("concatAB", beezUpData.ConcatAB);
+								xmlWriter.WriteElementString("sumCD", beezUpData.SumCD.ToString());
+								break;
+						}
+						xmlWriter.WriteEndElement();
+					}
+
+					xmlWriter.WriteEndElement();
+					xmlWriter.WriteEndDocument();
+					xmlWriter.Flush();
+					xmlWriter.Close();
+				}
+			}
+			else
+			{
+				//Specifique code for not existing file
+
+				XDocument xDocument = XDocument.Load(path);
+				XElement root = xDocument.Element("BeezUpData");
+				IEnumerable<XElement> rows = root.Descendants("Data");
+				XElement firstRow = rows.First();
+
+				List<XElement> rowToAdd = new List<XElement>();
+
+				foreach (BeezUpData beezUpData in data)
+				{
+					rowToAdd = new List<XElement>();
+
+					// Commun data
+					rowToAdd.Add(new XElement("LineNumber", beezUpData.LineNumber.ToString()));
+					rowToAdd.Add(new XElement("Type", Enum.GetName(typeof(Model.Type), beezUpData.Type)));
+
+					switch (beezUpData.Type)
+					{
+						// Specifique error part
+						case Model.Type.error:
+							rowToAdd.Add(new XElement("ErrorMessage", beezUpData.ErrorMessage));
+							break;
+						// Specifique ok type
+						case Model.Type.ok:
+							rowToAdd.Add(new XElement("ConcatAB", beezUpData.ConcatAB));
+							rowToAdd.Add(new XElement("SumCD", beezUpData.SumCD.ToString()));
+							break;
+					}
+
+					firstRow.AddBeforeSelf(rowToAdd);
+				}
+
+				xDocument.Save(path);
+			}
+		}
 	}
 }

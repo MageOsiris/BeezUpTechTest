@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Tools;
+using static Tools.Writer;
 
 namespace ConsoleAppPart
 {
@@ -9,6 +10,28 @@ namespace ConsoleAppPart
 	{
 		public static void Main(string[] args)
 		{
+			if (args.Length == 0)
+			{
+				System.Console.WriteLine("No argument found. Json result use by default");
+				System.Console.WriteLine("(-json for json, -xml for xml)");
+			}
+
+			TypeOfResult type = TypeOfResult.JSON;
+
+			for (int i = 0; i < args.Length; i++)
+			{
+				if (args[i] == "-xml")
+				{
+					type = TypeOfResult.XML;
+				}
+
+				else if (args[i] == "-json")
+				{
+					//Already set by default
+					//type = TypeOfResult.JSON
+				}
+			}
+
 			Console.WriteLine("Start Reading File");
 			Console.WriteLine("Enter a specifique path of csv file, if empty it use InFile folder in ConsoleAppPart");
 
@@ -17,12 +40,22 @@ namespace ConsoleAppPart
 			if (string.IsNullOrEmpty(pathIn) || string.IsNullOrWhiteSpace(pathIn))
 				pathIn = "../../../InFile/bigfile.csv";
 
-			Console.WriteLine("Found the json file result in the OutFile folder in ConsoleAppPart");
-			string pathOut = "../../../OutFile/result.json";
+			Console.WriteLine("Found the file result in the OutFile folder in ConsoleAppPart");
+			string pathOut = "../../../OutFile/result";
+
+			switch(type)
+			{
+				case TypeOfResult.JSON:
+					pathOut += ".json";
+					break;
+				case TypeOfResult.XML:
+					pathOut += ".xml";
+					break;
+			}
 
 			try
 			{
-				WorkFile(pathIn, pathOut);
+				WorkFile(pathIn, pathOut, type);
 				Console.WriteLine();
 				Console.WriteLine("Reading finish");
 			}
@@ -45,7 +78,7 @@ namespace ConsoleAppPart
 		/// </summary>
 		/// <param name="info"></param>
 		/// <param name="maxline"></param>
-		public static async void WorkFile(string pathIn, string pathOut, int maxline = 1000000)
+		public static async void WorkFile(string pathIn, string pathOut, TypeOfResult type, int maxline = 1000000)
 		{
 			// Get the file
 			var lines = File.ReadLines(pathIn);
@@ -68,8 +101,9 @@ namespace ConsoleAppPart
 			//Delete file if exist
 			Writer.DeleteFileIfExist(pathOut);
 
-			// Begin the array of json
-			Writer.WriteChar(pathOut, '[');
+			if(type == TypeOfResult.JSON)
+				// Begin the array of json
+				Writer.WriteChar(pathOut, '[');
 
 			bool writeInLastOccurence = false;
 
@@ -79,14 +113,15 @@ namespace ConsoleAppPart
 				cptLine = cptOccurence * maxline;
 
 				if (cptOccurence == numberOfOccurence)
-					writeInLastOccurence = Writer.WriteJsonData(pathOut, await Reader.ReadLinesAndCreateResponse(lines.Skip(cptLine).Take(lastLines), cptLine), writeInLastOccurence);
+					writeInLastOccurence = Writer.WriteData(pathOut, await Reader.ReadLinesAndCreateResponse(lines.Skip(cptLine).Take(lastLines), cptLine), writeInLastOccurence, type);
 				else
-					writeInLastOccurence = Writer.WriteJsonData(pathOut, await Reader.ReadLinesAndCreateResponse(lines.Skip(cptLine).Take(maxline), cptLine), writeInLastOccurence);
+					writeInLastOccurence = Writer.WriteData(pathOut, await Reader.ReadLinesAndCreateResponse(lines.Skip(cptLine).Take(maxline), cptLine), writeInLastOccurence, type);
 				cptOccurence++;
 			}
 
-			// Close the array of json
-			Writer.WriteChar(pathOut, ']');
+			if (type == TypeOfResult.JSON)
+				// Close the array of json
+				Writer.WriteChar(pathOut, ']');
 		}
 	}
 }
